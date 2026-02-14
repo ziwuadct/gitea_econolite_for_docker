@@ -17,7 +17,8 @@ pipeline {
                     branches: [[name: '*/main']], 
                     userRemoteConfigs: [[
                         url: 'https://github.com/ziwuadct/econolite_private.git', 
-                        credentialsId: 'econolite-github-token' // Must match the ID from Step 1
+//                        credentialsId: 'econolite-github-token' // Must match the ID from Step 1
+                        credentialsId: 'econolite_privtae_david_ssh_key' // Must match the ID from Step 1
                     ]]
                 ])
             }
