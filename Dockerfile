@@ -26,7 +26,7 @@ RUN chmod +x /app/init.sh
 COPY ./repos ./repos
 WORKDIR /app/repos
 
-# Use Makefile to build, pass RELEASE and select compiler
+# 1.Use Makefile to build, pass RELEASE and select compiler
 RUN if [ "$RELEASE" = "true" ]; then \
         echo "Release build: using gcc"; \
         make CC="$PPC_CC" RELEASE=true GIT_VERSION="$GIT_VERSION"; \
@@ -36,17 +36,17 @@ RUN if [ "$RELEASE" = "true" ]; then \
     fi
     
 
+# 2. Use the RUN block to create a symbolic link (shortcut)
 RUN if [ "$RELEASE" = "true" ]; then \
-        echo "run Release build"; \
-        ENTRYPOINT ["./app_release"] \
+        echo "Setting up Release build link"; \
+        ln -s /app/app_release /app/app_run; \
     else \
-        echo "Run linux build"; \
-        ENTRYPOINT ["./app_linux"] \
+        echo "Setting up Linux build link"; \
+        ln -s /app/app_linux /app/app_run; \
     fi
-    
-#ENTRYPOINT ["./app_linux"]
-#ENTRYPOINT ["./app_release"]
-#ENTRYPOINT ["/app/init.sh"]
+
+# 3. Set the ENTRYPOINT to the shortcut (Outside the IF block)
+ENTRYPOINT ["./app_run"]
 
 
 #docker build -t c-gcc-demo:release --build-arg RELEASE=true --build-arg GIT_VERSION=aaa .
