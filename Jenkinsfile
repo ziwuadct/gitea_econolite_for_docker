@@ -34,7 +34,16 @@ pipeline {
                 stage('Build Docker Image linux + release') {
                     steps {
                         // This builds your main Dockerfile
-                        powershell 'docker build -t c-gcc-demo --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
+                
+                        script {
+                            if (params.RELEASE) {
+                                // If the checkbox was checked
+                                powershell 'docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
+                            } else {
+                                // If the checkbox was NOT checked
+                               powershell 'docker build -t c-gcc-demo --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
+                            }                        
+                        
                     }
                 }
                 
@@ -53,7 +62,7 @@ pipeline {
             }
         }
         
-        stage('run linux + release') {
+        stage('run build') {
             steps {
 //                powershell 'docker run --rm c-gcc-demo This is a test'
                 
