@@ -42,7 +42,8 @@ pipeline {
                             } else {
                                 // If the checkbox was NOT checked
                                powershell 'docker build -t c-gcc-demo --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
-                            }                        
+                            }
+                        }
                         
                     }
                 }
