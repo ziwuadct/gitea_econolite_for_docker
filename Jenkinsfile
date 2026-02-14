@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    parameters {
+            // This creates the RELEASE toggle
+            booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build')
+    }
+
     stages {
         stage('Initialize') {
             steps {
@@ -28,11 +33,6 @@ pipeline {
         
         stage('build docker') {
         
-            parameters {
-                    // This creates the RELEASE toggle
-                    booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build')
-            }
-            
             parallel {
                 stage('Build Docker Image linux + release') {
                     steps {
