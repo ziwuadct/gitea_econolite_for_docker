@@ -57,6 +57,8 @@ pipeline {
             steps {
 //                powershell 'docker run --rm c-gcc-demo This is a test'
                 
+                echo "-------Is this a release build: ${params.RELEASE}"
+                
                 script {
                     if (params.RELEASE) {
                         // If the checkbox was checked
