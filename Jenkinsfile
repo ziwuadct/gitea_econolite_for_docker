@@ -14,7 +14,6 @@ pipeline {
             }
         }
         
-        
         stage('Checkout Source') {
             steps {
                 // This pulls the code from your GitHub repo using the token
@@ -29,8 +28,6 @@ pipeline {
             }
         }   
         
-        
-        
         stage('build docker') {
         
             parallel {
@@ -41,13 +38,6 @@ pipeline {
                     }
                 }
                 
-//                stage('Build Docker Image release') {
-//                    steps {
-//                        // This builds your main Dockerfile
-//                        powershell 'docker build -t c-gcc-demo:release --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
-//                    }
-//                }
-                
                 stage('Health Check') {
                     steps {
                         echo "Checking system status while building..."
@@ -56,8 +46,6 @@ pipeline {
                 }
             }
         }
-        
-
         
         stage('Verify') {
             steps {
@@ -71,13 +59,6 @@ pipeline {
             }
         }
         
-//        stage('run release') {
-//            steps {
-//                powershell 'docker run --rm c-gcc-demo:release This is a test'
-//            }
-//        }
-        
-             
         stage('Deploy PPC Binary') {
             steps {
             
@@ -89,15 +70,22 @@ pipeline {
                 '''
                 
                 powershell 'docker create --name tmp_app c-gcc-demo'
-                powershell 'docker cp tmp_app:/app/repos/app_release c:/temp'
-                powershell 'docker cp tmp_app:/app/repos/app_linux c:/temp'
-                
-                powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_release labadmin@192.168.86.229:C:\\wipro\\'
-                powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_linux labadmin@192.168.86.229:C:\\wipro\\'
-            }
+
+                script {
+                    // Check if the RELEASE parameter is true
+                    if (params.RELEASE) {
+                        powershell 'docker cp tmp_app:/app/repos/app_release c:/temp'
+                        echo "Release mode detected. Deploying Release binary..."
+                        powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_release labadmin@192.168.86.229:C:\\wipro\\'
+                    } else {
+                        powershell 'docker cp tmp_app:/app/repos/app_linux c:/temp'
+                        echo "Debug mode detected. Deploying Linux Native binary..."
+                        powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_linux labadmin@192.168.86.229:C:\\wipro\\'
+                    }
+                }
+            }    
+
         }
-
-
 
     }
 }
