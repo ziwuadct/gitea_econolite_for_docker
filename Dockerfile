@@ -9,7 +9,7 @@ ARG PPC_CC=gcc
 ARG RELEASE=false
 
 
-RUN echo "---1----The RELEASE build argument is set to: $RELEASE"
+RUN echo "---1----The RELEASE build argument is set to: ${RELEASE}"
 
 
 ARG GIT_VERSION=unknown
@@ -31,17 +31,17 @@ RUN chmod +x /app/init.sh
 COPY ./repos ./repos
 WORKDIR /app/repos
 
-RUN echo "---1----The RELEASE build argument is set to: $RELEASE"
+RUN echo "---2----The RELEASE build argument is set to: ${RELEASE}"
 
 
 # 1.Use Makefile to build, pass RELEASE and select compiler
 RUN if [ "$RELEASE" = "true" ]; then \
         echo "Release build: using gcc"; \
-        echo "---1----The RELEASE build argument is set to: $RELEASE"; \
+        echo "---3----The RELEASE build argument is set to: ${RELEASE}"; \
         make CC="$PPC_CC" RELEASE=true GIT_VERSION="$GIT_VERSION"; \
     else \
         echo "Debug build: using gcc"; \
-        echo "---1----The RELEASE build argument is set to: $RELEASE"; \
+        echo "---4----The RELEASE build argument is set to: ${RELEASE}"; \
         make CC="$LINUX_CC" GIT_VERSION="$GIT_VERSION"; \
     fi
     
