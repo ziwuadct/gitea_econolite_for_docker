@@ -16,9 +16,9 @@ pipeline {
                 checkout([$class: 'GitSCM', 
                     branches: [[name: '*/main']], 
                     userRemoteConfigs: [[
-                        url: 'https://github.com/ziwuadct/econolite_private.git', 
+                        url: 'http://192.168.86.229:3000/david/gitea_econolite.git', 
 //                        credentialsId: 'econolite-github-token' // Must match the ID from Step 1
-                        credentialsId: 'econolite_privtae_david_ssh_key' // Must match the ID from Step 1
+                        credentialsId: 'gitea_david_password' // Must match the ID from Step 1
                     ]]
                 ])
             }
