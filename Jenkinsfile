@@ -41,7 +41,7 @@ pipeline {
                                 powershell 'docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
                             } else {
                                 // If the checkbox was NOT checked
-                               powershell 'docker build -t c-gcc-demo --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
+                                powershell 'docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
                             }
                         }
                         
@@ -96,14 +96,14 @@ pipeline {
                 script {
                     // Check if the RELEASE parameter is true
                     if (params.RELEASE) {
-                        echo "--------------------docker cp tmp_app:/app/repos/app_release c:/temp"
+//                        echo "--------------------docker cp tmp_app:/app/repos/app_release c:/temp"
                         powershell 'docker cp tmp_app:/app/repos/app_release c:/temp'
-                        echo "-----------pscp -batch -hostkey c:\\temp\\app_release"
+//                        echo "-----------pscp -batch -hostkey c:\\temp\\app_release"
                         powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_release labadmin@192.168.86.229:C:\\wipro\\'
                     } else {
-                        echo "--------------------docker cp tmp_app:/app/repos/app_linux c:/temp"
+//                        echo "--------------------docker cp tmp_app:/app/repos/app_linux c:/temp"
                         powershell 'docker cp tmp_app:/app/repos/app_linux c:/temp'
-                        echo "-----------pscp -batch -hostkey c:\\temp\\app_linux"
+//                        echo "-----------pscp -batch -hostkey c:\\temp\\app_linux"
                         powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_linux labadmin@192.168.86.229:C:\\wipro\\'
                     }
                 }
