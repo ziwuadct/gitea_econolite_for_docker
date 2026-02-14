@@ -27,6 +27,12 @@ pipeline {
         
         
         stage('build docker') {
+        
+            parameters {
+                    // This creates the RELEASE toggle
+                    booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build')
+            }
+            
             parallel {
                 stage('Build Docker Image linux + release') {
                     steps {
@@ -38,7 +44,7 @@ pipeline {
 //                stage('Build Docker Image release') {
 //                    steps {
 //                        // This builds your main Dockerfile
-//                        powershell 'docker build -t c-gcc-demo:release --build-arg RELEASE=true --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
+//                        powershell 'docker build -t c-gcc-demo:release --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) .'
 //                    }
 //                }
                 
