@@ -36,9 +36,17 @@ RUN if [ "$RELEASE" = "true" ]; then \
     fi
     
 
+RUN if [ "$RELEASE" = "true" ]; then \
+        echo "run Release build"; \
+        ENTRYPOINT ["./app_release"] \
+    else \
+        echo "Run linux build"; \
+        ENTRYPOINT ["./app_linux"] \
+    fi
+    
 #ENTRYPOINT ["./app_linux"]
 #ENTRYPOINT ["./app_release"]
-ENTRYPOINT ["/app/init.sh"]
+#ENTRYPOINT ["/app/init.sh"]
 
 
 #docker build -t c-gcc-demo:release --build-arg RELEASE=true --build-arg GIT_VERSION=aaa .
