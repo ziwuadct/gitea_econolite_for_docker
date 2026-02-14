@@ -55,7 +55,17 @@ pipeline {
         
         stage('run linux + release') {
             steps {
-                powershell 'docker run --rm c-gcc-demo This is a test'
+//                powershell 'docker run --rm c-gcc-demo This is a test'
+                
+                script {
+                    if (params.RELEASE) {
+                        // If the checkbox was checked
+                        powershell 'docker run --rm c-gcc-demo "This is release build"'
+                    } else {
+                        // If the checkbox was NOT checked
+                        powershell 'docker run --rm c-gcc-demo "This is a linux build"'
+                    }
+                }
             }
         }
         
