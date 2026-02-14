@@ -36,6 +36,8 @@ RUN if [ "$RELEASE" = "true" ]; then \
     fi
     
 
+WORKDIR /app
+
 # 2. Use the RUN block to create a symbolic link (shortcut)
 RUN if [ "$RELEASE" = "true" ]; then \
         echo "Setting up Release build link"; \
