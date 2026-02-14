@@ -37,11 +37,11 @@ RUN echo "---1----The RELEASE build argument is set to: $RELEASE"
 # 1.Use Makefile to build, pass RELEASE and select compiler
 RUN if [ "$RELEASE" = "true" ]; then \
         echo "Release build: using gcc"; \
-        echo "---1----The RELEASE build argument is set to: $RELEASE"
+        echo "---1----The RELEASE build argument is set to: $RELEASE"; \
         make CC="$PPC_CC" RELEASE=true GIT_VERSION="$GIT_VERSION"; \
     else \
         echo "Debug build: using gcc"; \
-        echo "---1----The RELEASE build argument is set to: $RELEASE"
+        echo "---1----The RELEASE build argument is set to: $RELEASE"; \
         make CC="$LINUX_CC" GIT_VERSION="$GIT_VERSION"; \
     fi
     
