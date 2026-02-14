@@ -41,10 +41,10 @@ WORKDIR /app
 # 2. Use the RUN block to create a symbolic link (shortcut)
 RUN if [ "$RELEASE" = "true" ]; then \
         echo "Setting up Release build link"; \
-        ln -s /app/app_release /app/app_run; \
+        ln -sf /app/repos/app_release /app/app_run; \
     else \
         echo "Setting up Linux build link"; \
-        ln -s /app/app_linux /app/app_run; \
+        ln -sf /app/repos/app_linux /app/app_run; \
     fi
 
 # 3. Set the ENTRYPOINT to the shortcut (Outside the IF block)
