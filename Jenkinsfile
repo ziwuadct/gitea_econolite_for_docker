@@ -94,7 +94,7 @@ pipeline {
                 powershell 'docker create --name tmp_app c-gcc-demo'
                 
                 echo "DEBUG: Checking file list inside container..."
-                powershell 'docker run --rm c-gcc-demo ls -al /app/repos'
+                powershell 'docker run c-gcc-demo ls -al /app/repos'
 
                 script {
                     // Check if the RELEASE parameter is true
