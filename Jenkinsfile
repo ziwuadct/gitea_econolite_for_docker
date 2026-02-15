@@ -38,10 +38,10 @@ pipeline {
                         script {
                             if (params.RELEASE) {
                                 // If the checkbox was checked
-                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) ."
+                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
                             } else {
                                 // If the checkbox was NOT checked
-                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=$(git describe --tags --dirty --always) ."
+                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
                             }
                         }
                         
