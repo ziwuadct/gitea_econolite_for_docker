@@ -73,5 +73,6 @@ ENTRYPOINT ["./app_run"]
 
 #docker run c-gcc-demo "This is a test"
 #docker run --rm c-gcc-demo This is a test
+#docker rm -f tmp_app
 #docker run --rm -it --entrypoint bash c-gcc-demo
 
