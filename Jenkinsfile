@@ -84,29 +84,24 @@ pipeline {
         stage('Deploy PPC Binary') {
             steps {
             
-                powershell '''
-                if (docker ps -a --format '{{.Names}}' | findstr "tmp_app") 
-                {
-                    docker rm -f tmp_app
-                }
-                '''
-                
+                echo "-------22-------------"
+                powershell 'docker rm -f tmp_app'
+                echo "-------33-------------"
                 powershell 'docker create --name tmp_app c-gcc-demo'
-                
+                echo "-------44-------------"
                 echo "DEBUG: Checking file list inside container..."
                 powershell 'docker run c-gcc-demo ls -al /app/repos'
 
                 script {
-                    // Check if the RELEASE parameter is true
                     if (params.RELEASE) {
-                        echo "-------22-------------docker cp tmp_app:/app/repos/app_release c:/temp"
+                        echo "-------55-------------docker cp tmp_app:/app/repos/app_release c:/temp"
                         powershell 'docker cp tmp_app:/app/repos/app_release c:/temp'
                         echo "-----------pscp -batch -hostkey c:\\temp\\app_release"
                         powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_release labadmin@192.168.86.229:C:\\wipro\\'
                     } else {
-                        echo "--------33------------docker cp tmp_app:/app/repos/app_linux c:/temp"
+                        echo "--------66------------docker cp tmp_app:/app/repos/app_linux c:/temp"
                         powershell 'docker cp tmp_app:/app/repos/app_linux c:/temp'
-                        echo "--------44-------pscp -batch -hostkey c:\\temp\\app_linux"
+                        echo "--------77-------pscp -batch -hostkey c:\\temp\\app_linux"
                         powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_linux labadmin@192.168.86.229:C:\\wipro\\'
                     }
                 }
