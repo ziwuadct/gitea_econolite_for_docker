@@ -2,56 +2,50 @@ pipeline {
     agent any
 
     parameters {
-            // This creates the RELEASE toggle
-            booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build')
+        // This creates the RELEASE toggle [cite: 1]
+        booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build') [cite: 1]
     }
 
     stages {
         stage('Initialize') {
             steps {
-                echo 'Starting Econolite Build...'
-                powershell 'docker version'
+                echo 'Starting Econolite Build...' [cite: 2]
+                sh 'docker version' 
             }
         }
         
         stage('Checkout Source') {
             steps {
-                // This pulls the code from your GitHub repo using the token
+                // This pulls the code from your Gitea repo [cite: 3]
                 checkout([$class: 'GitSCM', 
-                    branches: [[name: '*/main']], 
+                    branches: [[name: '*/main']], [cite: 3]
                     userRemoteConfigs: [[
-                        url: 'http://192.168.86.229:3000/david/gitea_econolite.git', 
-//                        credentialsId: 'econolite-github-token' // Must match the ID from Step 1
-                        credentialsId: 'gitea_david_password' // Must match the ID from Step 1
+                        url: 'http://192.168.86.229:3000/david/gitea_econolite.git', [cite: 3]
+                        credentialsId: 'gitea_david_password' [cite: 4]
                     ]]
                 ])
             }
         }   
         
         stage('build docker') {
-        
             parallel {
                 stage('Build Docker Image linux + release') {
                     steps {
-                        // This builds your main Dockerfile
-                
                         script {
-                            if (params.RELEASE) {
-                                // If the checkbox was checked
-                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
-                            } else {
-                                // If the checkbox was NOT checked
-                                powershell "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
+                            // Builds the Dockerfile using shell commands [cite: 6, 7]
+                            if (params.RELEASE) { [cite: 7]
+                                sh "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ." [cite: 7]
+                            } else { [cite: 8]
+                                sh "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ." [cite: 8]
                             }
                         }
-                        
                     }
                 }
                 
                 stage('Health Check') {
                     steps {
-                        echo "Checking system status while building..."
-                        powershell 'docker version'
+                        echo "Checking system status while building..." [cite: 10]
+                        sh 'docker version' 
                     }
                 }
             }
@@ -59,23 +53,19 @@ pipeline {
         
         stage('Verify') {
             steps {
-                powershell 'docker images | findstr c-gcc-demo'
+                // 'grep' replaces the Windows 'findstr' command 
+                sh 'docker images | grep c-gcc-demo' 
             }
         }
         
         stage('run build') {
             steps {
-//                powershell 'docker run --rm c-gcc-demo This is a test'
-                
-                echo "-----11--Is this a release build: ${params.RELEASE}"
-                
+                echo "-----11--Is this a release build: ${params.RELEASE}" [cite: 13]
                 script {
-                    if (params.RELEASE) {
-                        // If the checkbox was checked
-                        powershell 'docker run --rm c-gcc-demo "This is release build"'
-                    } else {
-                        // If the checkbox was NOT checked
-                        powershell 'docker run --rm c-gcc-demo "This is a linux build"'
+                    if (params.RELEASE) { [cite: 14]
+                        sh 'docker run --rm c-gcc-demo "This is release build"' [cite: 14]
+                    } else { [cite: 15]
+                        sh 'docker run --rm c-gcc-demo "This is a linux build"' [cite: 15]
                     }
                 }
             }
@@ -83,31 +73,30 @@ pipeline {
         
         stage('Deploy PPC Binary') {
             steps {
-            
-                echo "-------22-------------"
-                powershell 'docker rm -f tmp_app'
-                echo "-------33-------------"
-                powershell 'docker create --name tmp_app c-gcc-demo'
-                echo "-------44-------------"
-                echo "DEBUG: Checking file list inside container..."
-                powershell 'docker run c-gcc-demo ls -al /app/repos'
+                echo "-------22-------------" [cite: 16]
+                sh 'docker rm -f tmp_app || true' 
+                echo "-------33-------------" [cite: 16]
+                sh 'docker create --name tmp_app c-gcc-demo' [cite: 16]
+                echo "-------44-------------" [cite: 17]
+                echo "DEBUG: Checking file list inside container..." [cite: 17]
+                sh 'docker run c-gcc-demo ls -al /app/repos' [cite: 17]
 
                 script {
-                    if (params.RELEASE) {
-                        echo "-------55-------------docker cp tmp_app:/app/repos/app_release c:/temp"
-                        powershell 'docker cp tmp_app:/app/repos/app_release c:/temp'
-                        echo "-----------pscp -batch -hostkey c:\\temp\\app_release"
-                        powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_release labadmin@192.168.86.229:C:\\wipro\\'
-                    } else {
-                        echo "--------66------------docker cp tmp_app:/app/repos/app_linux c:/temp"
-                        powershell 'docker cp tmp_app:/app/repos/app_linux c:/temp'
-                        echo "--------77-------pscp -batch -hostkey c:\\temp\\app_linux"
-                        powershell 'pscp -batch -hostkey "SHA256:MremSl0rKC8Ae92G8DNXIvGVEVGPuaaeDn52/W21bUo" -pw MyLabPass123! c:\\temp\\app_linux labadmin@192.168.86.229:C:\\wipro\\'
+                    // Use /tmp (Linux) instead of c:/temp (Windows) 
+                    // Use 'sshpass' and 'scp' instead of 'pscp' 
+                    if (params.RELEASE) { [cite: 18]
+                        echo "-------55-------------docker cp tmp_app:/app/repos/app_release /tmp" [cite: 18]
+                        sh 'docker cp tmp_app:/app/repos/app_release /tmp/app_release' 
+                        echo "-----------scp /tmp/app_release to remote" [cite: 18]
+                        sh 'sshpass -p "MyLabPass123!" scp -o StrictHostKeyChecking=no /tmp/app_release labadmin@192.168.86.229:C:/wipro/' 
+                    } else { [cite: 19]
+                        echo "--------66------------docker cp tmp_app:/app/repos/app_linux /tmp" [cite: 19]
+                        sh 'docker cp tmp_app:/app/repos/app_linux /tmp/app_linux' 
+                        echo "--------77-------scp /tmp/app_linux to remote" [cite: 20]
+                        sh 'sshpass -p "MyLabPass123!" scp -o StrictHostKeyChecking=no /tmp/app_linux labadmin@192.168.86.229:C:/wipro/' 
                     }
                 }
             }    
-
         }
-
     }
 }
