@@ -14,18 +14,24 @@ pipeline {
             }
         }
         
-      
         stage('Checkout Source') {
-                    steps {
-                        checkout([$class: 'GitSCM', 
-                            branches: [[name: '*/main']], // Check for the double ]] here
-                            userRemoteConfigs: [[
-                                url: 'http://192.168.86.229:3000/david/gitea_econolite_for_docker.git', 
-                                credentialsId: 'gitea_david_password'
-                            ]]
-                        ])
-                    }
-                }
+            steps {
+                // This automatically uses the URL and credentials defined in the Jenkins Job settings
+                checkout scm
+            }
+        }
+      
+//        stage('Checkout Source') {
+//                    steps {
+//                        checkout([$class: 'GitSCM', 
+//                           branches: [[name: '*/main']], // Check for the double ]] here
+//                            userRemoteConfigs: [[
+//                                url: 'http://192.168.86.229:3000/david/gitea_econolite_for_docker.git', 
+//                                credentialsId: 'gitea_david_password'
+//                            ]]
+//                        ])
+//                    }
+//                }
                 
                 
         
