@@ -2,58 +2,52 @@ pipeline {
     agent any
 
     parameters {
-        // This creates the RELEASE toggle
         booleanParam(name: 'RELEASE', defaultValue: false, description: 'Check to make a release build')
+    }
+
+    environment {
+        // Optimization: Enable modern BuildKit engine for faster caching
+        DOCKER_BUILDKIT = '1'
+        IMAGE_NAME = 'c-gcc-demo'
+        // Optimization: Determine binary name once to remove repetitive if/else blocks
+        BINARY_NAME = "${params.RELEASE ? 'app_release' : 'app_linux'}"
     }
 
     stages {
         stage('Initialize') {
             steps {
-                echo 'Starting Econolite Build...'
+                script {
+                    echo "Starting Econolite Build for ${BINARY_NAME}..."
+                    // Optimization: Capture Git version once to reuse in build
+                    env.GIT_VER = sh(script: 'git describe --tags --dirty --always', returnStdout: true).trim()
+                }
                 sh 'docker version' 
             }
         }
         
         stage('Checkout Source') {
             steps {
-                // This automatically uses the URL and credentials defined in the Jenkins Job settings
                 checkout scm
             }
         }
-      
-//        stage('Checkout Source') {
-//                    steps {
-//                        checkout([$class: 'GitSCM', 
-//                           branches: [[name: '*/main']], // Check for the double ]] here
-//                            userRemoteConfigs: [[
-//                                url: 'http://192.168.86.229:3000/david/gitea_econolite_for_docker.git', 
-//                                credentialsId: 'gitea_david_password'
-//                            ]]
-//                        ])
-//                    }
-//                }
-                
-                
         
-        stage('build docker') {
+        stage('Build Docker') {
             parallel {
-                stage('Build Docker Image linux + release') {
+                stage('Build Image') {
                     steps {
-                        script {
-                            // Builds the Dockerfile using shell commands [cite: 6, 7]
-                            if (params.RELEASE) {
-                                sh "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
-                            } else {
-                                sh "docker build -t c-gcc-demo --build-arg RELEASE=${params.RELEASE} --build-arg GIT_VERSION=\$(git describe --tags --dirty --always) ."
-                            }
-                        }
+                        // Optimization: Simplified build command using environment variables
+                        sh """
+                            docker build -t ${IMAGE_NAME} \
+                            --build-arg RELEASE=${params.RELEASE} \
+                            --build-arg GIT_VERSION=${env.GIT_VER} .
+                        """
                     }
                 }
                 
                 stage('Health Check') {
                     steps {
-                        echo "Checking system status while building..."
-                        sh 'docker version' 
+                        echo "System status check..."
+                        sh 'docker info | grep "Kernel Version"' 
                     }
                 }
             }
@@ -61,50 +55,41 @@ pipeline {
         
         stage('Verify') {
             steps {
-                // 'grep' replaces the Windows 'findstr' command 
-                sh 'docker images | grep c-gcc-demo' 
+                sh "docker images | grep ${IMAGE_NAME}" 
             }
         }
         
-        stage('run build') {
+        stage('Run & Deploy') {
             steps {
-                echo "-----11--Is this a release build: ${params.RELEASE}"
-                script {
-                    if (params.RELEASE) {
-                        sh 'docker run --rm c-gcc-demo "This is release build"'
-                    } else {
-                        sh 'docker run --rm c-gcc-demo "This is a linux build"'
-                    }
-                }
-            }
-        }
-        
-        stage('Deploy PPC Binary') {
-            steps {
-                echo "-------22-------------"
-                sh 'docker rm -f tmp_app || true' 
-                echo "-------33-------------"
-                sh 'docker create --name tmp_app c-gcc-demo'
-                echo "-------44-------------"
-                echo "DEBUG: Checking file list inside container..."
-                sh 'docker run c-gcc-demo ls -al /app/repos'
+                echo "Running build test for: ${BINARY_NAME}"
+                sh "docker run --rm ${IMAGE_NAME} 'Testing ${BINARY_NAME} build'"
 
                 script {
-                    // Use /tmp (Linux) instead of c:/temp (Windows) 
-                    // Use 'sshpass' and 'scp' instead of 'pscp' 
-                    if (params.RELEASE) {
-                        echo "-------55-------------docker cp tmp_app:/app/repos/app_release /tmp"
-                        sh 'docker cp tmp_app:/app/repos/app_release /tmp/app_release' 
-                        echo "-----------scp /tmp/app_release to remote"
-                        sh 'sshpass -p "MyLabPass123!" scp -o StrictHostKeyChecking=no /tmp/app_release labadmin@192.168.86.229:C:/wipro/' 
-                    } else {
-                        echo "--------66------------docker cp tmp_app:/app/repos/app_linux /tmp"
-                        sh 'docker cp tmp_app:/app/repos/app_linux /tmp/app_linux' 
-                        echo "--------77-------scp /tmp/app_linux to remote"
-                        sh 'sshpass -p "MyLabPass123!" scp -o StrictHostKeyChecking=no /tmp/app_linux labadmin@192.168.86.229:C:/wipro/' 
-                    }
+                    echo "Deploying ${BINARY_NAME} to remote target..."
+                    
+                    // Optimization: Clean, Create, and Copy using variables
+                    sh """
+                        docker rm -f tmp_app || true
+                        docker create --name tmp_app ${IMAGE_NAME}
+                        docker cp tmp_app:/app/repos/${BINARY_NAME} /tmp/${BINARY_NAME}
+                        docker rm tmp_app
+                        
+                        sshpass -p 'MyLabPass123!' scp -o StrictHostKeyChecking=no \
+                        /tmp/${BINARY_NAME} labadmin@192.168.86.229:C:/wipro/
+                    """
                 }
             }    
+        }
+    }
+
+    post {
+        always {
+            // Optimization: Clean up local temp files and workspace
+            sh "rm -f /tmp/${BINARY_NAME} || true"
+            cleanWs()
+        }
+        success {
+            echo "Build and Deployment of ${BINARY_NAME} successful."
         }
     }
 }
